@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextType, TextNode
-from inline_markdown import split_nodes_delimiter
+from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 
 class TestInline(unittest.TestCase):
     def test_normal_output(self):
@@ -32,6 +32,17 @@ class TestInline(unittest.TestCase):
         ],
     )
 
+    def test_extract_images(self):
+        matches = extract_markdown_images(
+            "Some of the worst tragedies in history have been followed with ![image](https://www.Iwasjustfollowingorders.com)"
+        )
+        self.assertListEqual([("image", "https://www.Iwasjustfollowingorders.com")], matches)
+
+    def test_extract_links(self):
+        matches = extract_markdown_links(
+            "You may test that assumption [at your convenience](https://www.Picardquotes.com)"
+        )
+        self.assertListEqual([("at your convenience", "https://www.Picardquotes.com")], matches)
 
 if __name__=="__main__":
     unittest.main()
