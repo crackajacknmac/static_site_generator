@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextType, TextNode
-from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
 
 class TestInline(unittest.TestCase):
     def test_normal_output(self):
@@ -43,6 +43,159 @@ class TestInline(unittest.TestCase):
             "You may test that assumption [at your convenience](https://www.Picardquotes.com)"
         )
         self.assertListEqual([("at your convenience", "https://www.Picardquotes.com")], matches)
+
+
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "This is some text with a [link](https://www.serebii.com) and another [link](https://www.wow.com)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is some text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://www.serebii.com"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://www.wow.com"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_no_images(self):
+        node = TextNode(
+            "Space. The final frontier. These are the voyages of the starship, Enterprise.",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("Space. The final frontier. These are the voyages of the starship, Enterprise.", TextType.TEXT
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_no_links(self):
+        node = TextNode(
+            "To explore strange new worlds and seek out new life and civilizations.",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("To explore strange new worlds and seek out new life and civilizations.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_link_end(self):
+        node = TextNode(
+            "To the red crown of [Omadon](https://www.flightofdragons.com)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("To the red crown of ", TextType.TEXT),
+                TextNode("Omadon", TextType.LINK, "https://www.flightofdragons.com"),
+            ],
+            new_nodes,
+        )
+
+
+    def test_image_end(self):
+        node = TextNode(
+            "Away with your millwheel. I call upon all the blue magic to make it disappear! ![greenmage](https://www.flightofdragons.com)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("Away with your millwheel. I call upon all the blue magic to make it disappear! ", TextType.TEXT),
+                TextNode("greenmage", TextType.IMAGE, "https://www.flightofdragons.com"),
+            ],
+            new_nodes,
+        )
+
+    def test_image_start(self):
+        node = TextNode(
+            "![PeterDickenson](https://www.flightofdragons.com) You are unique.",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("PeterDickenson", TextType.IMAGE, "https://www.flightofdragons.com"),
+                TextNode(" You are unique.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_link_start(self):
+        node = TextNode(
+            "[Omadon](https://www.flightofdragons.com)Greed and avarice shall prevail. And those who do not heed my words shall pay the price.",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("Omadon", TextType.LINK, "https://www.flightofdragons.com"),
+                TextNode("Greed and avarice shall prevail. And those who do not heed my words shall pay the price.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+
+    def test_multiple_images(self):
+        node = TextNode(
+            "I'll teach man what to do with his machines. ![deforester](https://www.Ferngully.com)I'll teach man how to fly like a fairy.![doom](https://www.flightofdragons.com)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("I'll teach man what to do with his machines. ", TextType.TEXT),
+                TextNode("deforester", TextType.IMAGE, "https://www.Ferngully.com"),
+                TextNode("I'll teach man how to fly like a fairy.", TextType.TEXT),
+                TextNode("doom", TextType.IMAGE, "https://www.flightofdragons.com"),
+            ],
+            new_nodes,
+        )
+
+    def test_multiple_links(self):
+        node = TextNode(
+            "[nuke](https://www.doom.com)And the world will be free for my magic again.[completepsycho](https://www.totheredcrownofomadon.com)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("nuke", TextType.LINK, "https://www.doom.com"),
+                TextNode("And the world will be free for my magic again.", TextType.TEXT),
+                TextNode("completepsycho", TextType.LINK, "https://www.totheredcrownofomadon.com"),
+            ],
+            new_nodes,
+        )
+
 
 if __name__=="__main__":
     unittest.main()
