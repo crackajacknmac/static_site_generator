@@ -1,5 +1,5 @@
 import unittest
-from markdown_blocks import markdown_to_blocks, BlockType, block_to_block_type, markdown_to_html_node, BlockType
+from markdown_blocks import markdown_to_blocks, BlockType, block_to_block_type, markdown_to_html_node, BlockType, extract_title
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, ParentNode
 from inline_markdown import text_to_textnodes
@@ -89,3 +89,21 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+
+    def test_extract_title(self):
+        md = """
+# This should pass the test"""
+        self.assertEqual("This should pass the test")
+
+
+    def test_extract_title_fail(self):
+        md = """
+## This should fail the test"""
+        self.assertEqual("no valid heading found")
+
+    def test_extract_title_no_headings(self):
+        md = """
+**This is not a heading**"""
+        self.assertEqual("no heading found")
+
