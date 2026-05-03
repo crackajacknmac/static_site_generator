@@ -1,6 +1,7 @@
 import os
 import shutil
-from copystatic import generator, extract_title, generate_page
+from pathlib import Path
+from copystatic import generator, extract_title, generate_page, generate_pages_recursive
 
 def main():
 
@@ -8,6 +9,6 @@ def main():
         shutil.rmtree("public")
     os.mkdir("public")
     generator("static", "public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 main()

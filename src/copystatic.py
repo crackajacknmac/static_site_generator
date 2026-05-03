@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 from markdown_blocks import block_to_block_type, markdown_to_blocks, markdown_to_html_node
 from htmlnode import HTMLNode
 
@@ -42,5 +43,16 @@ def generate_page(from_path, template_path, dest_path):
         f.write(new_page)
 
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    source_content = os.listdir(dir_path_content)
+    for each in source_content:
+        source = os.path.join(dir_path_content, each)
+        if os.path.isfile(source):
+            destination_path = os.path.join(dest_dir_path, each)
+            destination_path = Path(destination_path).with_suffix(".html")
+            generate_page(source, template_path, destination_path)
+        else:
+            recursed_destination = os.path.join(dest_dir_path, each)
+            generate_pages_recursive(source, template_path, recursed_destination)
 
 
